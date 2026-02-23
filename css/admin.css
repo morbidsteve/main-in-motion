@@ -1,0 +1,108 @@
+/* Main In Motion — Admin Styles */
+
+/* Leaflet overrides for admin map */
+#admin-map .leaflet-draw-toolbar a { width: 30px; height: 30px; line-height: 30px; }
+
+/* Table styles */
+table th { white-space: nowrap; user-select: none; }
+table td { vertical-align: middle; }
+table .status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-open { background: #D1FAE5; color: #065F46; }
+.status-limited { background: #FEF3C7; color: #92400E; }
+.status-closed { background: #FEE2E2; color: #991B1B; }
+.status-active { background: #FEE2E2; color: #991B1B; }
+.status-upcoming { background: #FEF3C7; color: #92400E; }
+.status-completed { background: #D1FAE5; color: #065F46; }
+
+/* Action buttons in tables */
+.table-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #E5E7EB;
+  background: white;
+  color: #374151;
+  transition: all 0.15s;
+}
+.table-btn:hover { background: #F9FAFB; border-color: #D1D5DB; }
+.table-btn-danger { color: #DC2626; }
+.table-btn-danger:hover { background: #FEF2F2; border-color: #FECACA; }
+
+/* Admin tab active state */
+.admin-tab.active { border-color: #E87722 !important; color: white !important; }
+.admin-biz-filter.active { background: #1B3A5C !important; color: white !important; }
+
+/* Phase list items in admin */
+.phase-admin-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+.phase-admin-item:hover { background: #F9FAFB; }
+
+/* Toast animation */
+#toast.show { animation: toast-in 0.3s ease-out; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form field styles */
+.admin-field { }
+.admin-field label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px; }
+.admin-field input, .admin-field select, .admin-field textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+.admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus {
+  outline: none;
+  border-color: #1B3A5C;
+  box-shadow: 0 0 0 3px rgba(27,58,92,0.1);
+}
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #D1D5DB;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-switch.active { background: #16A34A; }
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch.active::after { transform: translateX(20px); }
+
+/* Responsive admin */
+@media (max-width: 768px) {
+  .admin-tab { font-size: 12px; padding-left: 12px; padding-right: 12px; }
+}
