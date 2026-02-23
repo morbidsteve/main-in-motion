@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1B3A5C">
+  <meta name="description" content="Find parking and detours during Main Street construction in Mooresville, IN">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Main In Motion">
+  <title>Main In Motion — Mooresville, IN</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/assets/icon-192.svg">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#1B3A5C',
+            accent: '#E87722',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet Routing Machine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
+  <!-- Leaflet PolylineDecorator -->
+  <script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-gray-100 overflow-hidden">
+
+  <!-- Offline Banner -->
+  <div id="offline-banner" class="hidden fixed top-0 left-0 right-0 z-[1100] bg-gray-700 text-white text-center text-sm py-1.5 px-4">
+    Offline — showing cached data
+  </div>
+
+  <!-- Header -->
+  <header id="app-header" class="fixed top-0 left-0 right-0 z-[1000] bg-navy text-white shadow-lg transition-transform duration-300">
+    <div class="flex items-center justify-between px-4 py-2">
+      <div class="flex items-center gap-3 min-w-0">
+        <button id="menu-btn" class="flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors" aria-label="Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="min-w-0">
+          <h1 class="text-lg font-bold leading-tight truncate">Main In Motion</h1>
+          <p class="text-xs text-white/70 leading-tight">Mooresville, IN</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="phase-badge" class="flex-shrink-0 px-3 py-1 bg-accent text-white text-xs font-semibold rounded-full hover:bg-orange-600 transition-colors whitespace-nowrap">
+          Stage 1a — Active
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Announcement Banner -->
+  <div id="announcement-banner" class="hidden fixed top-[52px] left-0 right-0 z-[999] px-4 py-2.5 text-sm shadow-md">
+    <div class="flex items-start gap-2 max-w-4xl mx-auto">
+      <span id="announcement-icon" class="flex-shrink-0 mt-0.5">⚠️</span>
+      <p id="announcement-text" class="flex-1 leading-snug"></p>
+      <button id="announcement-dismiss" class="flex-shrink-0 p-1 rounded hover:bg-black/10" aria-label="Dismiss">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Map Container -->
+  <div id="map" class="fixed inset-0 z-0"></div>
+
+  <!-- Layer Toggle -->
+  <div id="layer-toggle" class="fixed z-[800] bg-white rounded-xl shadow-lg p-3 transition-transform duration-300" style="bottom: 160px; right: 16px;">
+    <button id="layer-toggle-btn" class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-0 cursor-pointer" aria-label="Toggle layers">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      <span>Layers</span>
+      <svg id="layer-chevron" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <div id="layer-options" class="hidden mt-2 space-y-2">
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input type="checkbox" id="layer-parking" checked class="rounded text-blue-600 focus:ring-blue-500">
+        <span class="text-blue-600">●</span> Parking Lots
+      </label>
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input type="checkbox" id="layer-construction" checked class="rounded text-red-600 focus:ring-red-500">
+        <span class="text-red-600">●</span> Construction
+      </label>
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input type="checkbox" id="layer-detours" checked class="rounded text-amber-500 focus:ring-amber-500">
+        <span class="text-amber-500">●</span> Detours
+      </label>
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input type="checkbox" id="layer-businesses" checked class="rounded text-green-600 focus:ring-green-500">
+        <span class="text-green-600">●</span> Businesses
+      </label>
+    </div>
+  </div>
+
+  <!-- GPS FAB -->
+  <button id="gps-btn" class="fixed z-[800] bg-white rounded-full shadow-lg p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors" style="bottom: 108px; right: 16px;" aria-label="Center on my location">
+    <svg class="w-6 h-6 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg>
+  </button>
+
+  <!-- Bottom Sheet (Mobile) -->
+  <div id="bottom-sheet" class="fixed bottom-0 left-0 right-0 z-[900] bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 lg:hidden" style="transform: translateY(calc(100% - 72px));">
+    <!-- Handle -->
+    <div id="sheet-handle" class="flex justify-center pt-2 pb-1 cursor-grab">
+      <div class="w-10 h-1 bg-gray-300 rounded-full"></div>
+    </div>
+    <!-- Collapsed Preview -->
+    <div id="sheet-preview" class="px-4 pb-2 flex items-center justify-between">
+      <div>
+        <span class="font-semibold text-navy">Find Parking</span>
+        <span id="lot-count" class="ml-2 text-sm text-gray-500"></span>
+      </div>
+      <button id="sheet-expand-btn" class="text-accent font-medium text-sm">View All</button>
+    </div>
+    <!-- Sheet Content -->
+    <div id="sheet-content" class="overflow-hidden" style="height: 0;">
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-200 px-4">
+        <button class="sheet-tab active flex-1 py-2.5 text-sm font-medium text-center border-b-2 border-navy text-navy" data-tab="parking">Parking</button>
+        <button class="sheet-tab flex-1 py-2.5 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="businesses">Businesses</button>
+        <button class="sheet-tab flex-1 py-2.5 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="info">Info</button>
+      </div>
+      <!-- Tab Panels -->
+      <div id="tab-parking" class="sheet-panel overflow-y-auto" style="max-height: 50vh;">
+        <div id="parking-list" class="divide-y divide-gray-100"></div>
+      </div>
+      <div id="tab-businesses" class="sheet-panel hidden overflow-y-auto" style="max-height: 50vh;">
+        <!-- Search & Filters -->
+        <div class="sticky top-0 bg-white px-4 py-2 border-b space-y-2">
+          <input id="biz-search" type="text" placeholder="Search businesses..." class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/30">
+          <div class="flex gap-2 flex-wrap">
+            <button class="biz-filter active px-3 py-1 text-xs rounded-full bg-navy text-white" data-filter="all">All</button>
+            <button class="biz-filter px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="Dining">Dining</button>
+            <button class="biz-filter px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="Retail">Retail</button>
+            <button class="biz-filter px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="Services">Services</button>
+          </div>
+        </div>
+        <div id="business-list" class="divide-y divide-gray-100"></div>
+      </div>
+      <div id="tab-info" class="sheet-panel hidden overflow-y-auto p-4 space-y-4" style="max-height: 50vh;">
+        <div>
+          <h3 class="font-semibold text-navy mb-2">About Main In Motion</h3>
+          <p class="text-sm text-gray-600 leading-relaxed">Main In Motion is an $8M streetscape improvement project covering 8 blocks of Main Street (SR 42) in downtown Mooresville, Indiana — from Monroe Street to Maple Lane at the railroad tracks. Funded by tax increment financing through the Mooresville Redevelopment Commission.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-navy mb-2">Construction Timeline</h3>
+          <div id="info-timeline" class="space-y-2"></div>
+        </div>
+        <div>
+          <h3 class="font-semibold text-navy mb-2">Contact</h3>
+          <div id="info-contact" class="text-sm text-gray-600 space-y-1"></div>
+        </div>
+        <div class="pt-2 border-t">
+          <a href="/admin" class="text-xs text-gray-400 hover:text-gray-600">Admin Panel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop Sidebar -->
+  <aside id="sidebar" class="hidden lg:flex fixed top-[52px] left-0 bottom-0 z-[800] w-96 bg-white shadow-xl flex-col">
+    <div class="flex border-b border-gray-200">
+      <button class="sidebar-tab active flex-1 py-3 text-sm font-medium text-center border-b-2 border-navy text-navy" data-tab="parking">Parking</button>
+      <button class="sidebar-tab flex-1 py-3 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="businesses">Businesses</button>
+      <button class="sidebar-tab flex-1 py-3 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="info">Info</button>
+    </div>
+    <div class="flex-1 overflow-y-auto">
+      <div id="sidebar-parking" class="sidebar-panel">
+        <div id="sidebar-parking-list" class="divide-y divide-gray-100"></div>
+      </div>
+      <div id="sidebar-businesses" class="sidebar-panel hidden">
+        <div class="sticky top-0 bg-white px-4 py-3 border-b space-y-2">
+          <input id="sidebar-biz-search" type="text" placeholder="Search businesses..." class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/30">
+          <div class="flex gap-2 flex-wrap">
+            <button class="sidebar-biz-filter active px-3 py-1 text-xs rounded-full bg-navy text-white" data-filter="all">All</button>
+            <button class="sidebar-biz-filter px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="Dining">Dining</button>
+            <button class="sidebar-biz-filter px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="Retail">Retail</button>
+            <button class="sidebar-biz-filter px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="Services">Services</button>
+          </div>
+        </div>
+        <div id="sidebar-business-list" class="divide-y divide-gray-100"></div>
+      </div>
+      <div id="sidebar-info" class="sidebar-panel hidden p-4 space-y-4">
+        <div>
+          <h3 class="font-semibold text-navy mb-2">About Main In Motion</h3>
+          <p class="text-sm text-gray-600 leading-relaxed">Main In Motion is an $8M streetscape improvement project covering 8 blocks of Main Street (SR 42) in downtown Mooresville, Indiana — from Monroe Street to Maple Lane at the railroad tracks.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-navy mb-2">Construction Timeline</h3>
+          <div id="sidebar-info-timeline" class="space-y-2"></div>
+        </div>
+        <div>
+          <h3 class="font-semibold text-navy mb-2">Contact</h3>
+          <div id="sidebar-info-contact" class="text-sm text-gray-600 space-y-1"></div>
+        </div>
+        <div class="pt-2 border-t">
+          <a href="/admin" class="text-xs text-gray-400 hover:text-gray-600">Admin Panel</a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Phase Modal -->
+  <div id="phase-modal" class="hidden fixed inset-0 z-[1200] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50" id="phase-modal-backdrop"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white px-5 py-4 border-b flex items-center justify-between rounded-t-2xl">
+        <h2 class="text-lg font-bold text-navy">Construction Phases</h2>
+        <button id="phase-modal-close" class="p-1.5 rounded-lg hover:bg-gray-100" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="phase-modal-content" class="p-5 space-y-4"></div>
+      <div class="sticky bottom-0 bg-white px-5 py-3 border-t">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Preview Phase:</label>
+        <select id="phase-preview-select" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/30">
+          <option value="">Current active phases</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Routing Panel -->
+  <div id="routing-panel" class="hidden fixed top-[52px] right-0 z-[950] bg-white shadow-xl rounded-bl-xl w-80 max-h-[50vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-4 py-3 border-b">
+      <h3 class="font-semibold text-navy text-sm">Walking Directions</h3>
+      <button id="routing-close" class="p-1 rounded hover:bg-gray-100" aria-label="Close directions">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="routing-instructions" class="p-4 text-sm text-gray-600"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="/js/app.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+    // Offline detection
+    window.addEventListener('online', () => document.getElementById('offline-banner').classList.add('hidden'));
+    window.addEventListener('offline', () => document.getElementById('offline-banner').classList.remove('hidden'));
+    if (!navigator.onLine) document.getElementById('offline-banner').classList.remove('hidden');
+  </script>
+</body>
+</html>

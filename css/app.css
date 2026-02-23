@@ -1,0 +1,220 @@
+/* Main In Motion — Public App Styles */
+
+/* Reset & Base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
+
+/* Map takes full viewport */
+#map { z-index: 0; }
+
+/* Leaflet overrides */
+.leaflet-control-zoom { margin-top: 70px !important; }
+.leaflet-control-attribution { font-size: 10px; }
+.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.leaflet-popup-content { margin: 12px 16px; font-size: 14px; line-height: 1.5; }
+.leaflet-popup-content h3 { font-size: 16px; font-weight: 700; color: #1B3A5C; margin-bottom: 6px; }
+.leaflet-popup-content .popup-meta { color: #6B7280; font-size: 12px; margin-bottom: 8px; }
+.leaflet-popup-content .popup-status { margin-bottom: 8px; }
+.leaflet-popup-content .popup-note { background: #F3F4F6; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #4B5563; margin-bottom: 8px; }
+.leaflet-popup-content .popup-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.leaflet-popup-content .popup-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: all 0.15s; }
+.leaflet-popup-content .popup-btn-primary { background: #1B3A5C; color: white; }
+.leaflet-popup-content .popup-btn-primary:hover { background: #15304d; }
+.leaflet-popup-content .popup-btn-accent { background: #E87722; color: white; }
+.leaflet-popup-content .popup-btn-accent:hover { background: #d06a1e; }
+.leaflet-popup-content .popup-btn-outline { background: white; color: #1B3A5C; border: 1.5px solid #E5E7EB; }
+.leaflet-popup-content .popup-btn-outline:hover { border-color: #1B3A5C; }
+
+/* Parking marker icon */
+.parking-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #2563EB;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  color: white;
+  font-weight: 800;
+  font-size: 18px;
+  font-family: system-ui, sans-serif;
+  line-height: 1;
+}
+
+/* Business marker dots */
+.business-marker {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.business-marker.status-open { background: #16A34A; }
+.business-marker.status-limited { background: #F59E0B; }
+.business-marker.status-closed { background: #DC2626; }
+
+/* Barrier markers */
+.barrier-marker {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+
+/* GPS blue dot */
+.gps-dot {
+  width: 20px;
+  height: 20px;
+  background: #3B82F6;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(59,130,246,0.4), 0 2px 6px rgba(0,0,0,0.3);
+  animation: gps-pulse 2s ease-in-out infinite;
+}
+
+@keyframes gps-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4), 0 2px 6px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 0 0 12px rgba(59,130,246,0), 0 2px 6px rgba(0,0,0,0.3); }
+  100% { box-shadow: 0 0 0 0 rgba(59,130,246,0), 0 2px 6px rgba(0,0,0,0.3); }
+}
+
+.gps-accuracy {
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 50%;
+}
+
+/* Header */
+#app-header.collapsed { transform: translateY(-100%); }
+
+/* Announcement Banner */
+.announcement-warning { background: #FEF3C7; color: #92400E; border-bottom: 1px solid #FDE68A; }
+.announcement-info { background: #DBEAFE; color: #1E40AF; border-bottom: 1px solid #BFDBFE; }
+
+/* Bottom Sheet */
+#bottom-sheet {
+  max-height: 85vh;
+  touch-action: none;
+}
+#sheet-handle { touch-action: none; }
+
+/* Sheet states */
+.sheet-collapsed { transform: translateY(calc(100% - 72px)) !important; }
+.sheet-half { transform: translateY(45%) !important; }
+.sheet-expanded { transform: translateY(0) !important; }
+
+/* Sheet tab active state */
+.sheet-tab.active { border-color: #1B3A5C; color: #1B3A5C; }
+.sidebar-tab.active { border-color: #1B3A5C; color: #1B3A5C; }
+
+/* Parking list items */
+.parking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.parking-item:hover { background: #F9FAFB; }
+.parking-item:active { background: #F3F4F6; }
+.parking-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: #2563EB;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 16px;
+}
+.parking-info { flex: 1; min-width: 0; }
+.parking-name { font-weight: 600; color: #1F2937; font-size: 14px; }
+.parking-detail { font-size: 12px; color: #6B7280; margin-top: 2px; }
+.parking-action { flex-shrink: 0; }
+.parking-dir-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #1B3A5C;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.parking-dir-btn:hover { background: #15304d; }
+
+/* Business list items */
+.business-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.business-item:hover { background: #F9FAFB; }
+.biz-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+}
+.biz-dot.open { background: #16A34A; }
+.biz-dot.limited { background: #F59E0B; }
+.biz-dot.closed { background: #DC2626; }
+.biz-info { flex: 1; min-width: 0; }
+.biz-name { font-weight: 600; color: #1F2937; font-size: 13px; }
+.biz-meta { font-size: 11px; color: #6B7280; margin-top: 1px; }
+
+/* Business filter active state */
+.biz-filter.active, .sidebar-biz-filter.active { background: #1B3A5C !important; color: white !important; }
+
+/* Layer toggle */
+#layer-toggle { min-width: 140px; }
+
+/* Phase modal timeline */
+.phase-item { padding: 12px 0; }
+.phase-item .phase-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.phase-badge-active { background: #FEE2E2; color: #991B1B; }
+.phase-badge-upcoming { background: #FEF3C7; color: #92400E; }
+.phase-badge-completed { background: #D1FAE5; color: #065F46; }
+
+/* Routing panel */
+.leaflet-routing-container { display: none !important; }
+
+/* Desktop sidebar adjustments */
+@media (min-width: 1024px) {
+  .leaflet-control-zoom { margin-left: 400px !important; }
+  #layer-toggle { right: 16px; }
+  #gps-btn { right: 16px; }
+}
+
+/* Focus styles for accessibility */
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+  outline: 2px solid #1B3A5C;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+.transition-sheet { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }

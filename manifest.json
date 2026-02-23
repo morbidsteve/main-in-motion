@@ -1,0 +1,24 @@
+{
+  "name": "Main In Motion - Mooresville",
+  "short_name": "Main In Motion",
+  "description": "Find parking and detours during Main Street construction in Mooresville, IN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1B3A5C",
+  "theme_color": "#1B3A5C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icon-192.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
