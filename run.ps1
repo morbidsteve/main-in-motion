@@ -54,17 +54,33 @@ if (-not $dockerExists) {
     exit 1
 }
 
-# Check Docker is running
+# Check Docker is running - try docker ps as a lightweight check
+$dockerRunning = $false
 try {
-    docker info 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'Docker not running' }
+    $null = docker ps 2>&1
+    if ($LASTEXITCODE -eq 0) { $dockerRunning = $true }
+}
+catch {}
+
+if (-not $dockerRunning) {
+    # Fallback: try docker version which works even with partial startup
+    try {
+        $null = docker version 2>&1
+        if ($LASTEXITCODE -eq 0) { $dockerRunning = $true }
+    }
+    catch {}
+}
+
+if ($dockerRunning) {
     Write-Host '  Docker is installed and running.' -ForegroundColor Green
 }
-catch {
-    Write-Host '  Docker is installed but not running.' -ForegroundColor Red
-    Write-Host '  Please start Docker Desktop and re-run this script.' -ForegroundColor Yellow
-    Read-Host 'Press Enter to exit'
-    exit 1
+else {
+    Write-Host '  Docker is installed but may not be fully started.' -ForegroundColor Yellow
+    $response = Read-Host '  Continue anyway? (Y/n)'
+    if ($response -ne '' -and $response -notmatch '^[Yy]') {
+        Read-Host 'Press Enter to exit'
+        exit 1
+    }
 }
 
 # --- Check Git ---
