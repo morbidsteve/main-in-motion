@@ -124,10 +124,25 @@ function initAdminMap() {
     maxZoom: MAP_CONFIG.maxZoom
   });
 
-  L.tileLayer(MAP_CONFIG.tileUrl, {
+  // Transport map tiles with fallback to standard OSM
+  const transportTiles = L.tileLayer(MAP_CONFIG.tileUrl, {
     attribution: MAP_CONFIG.tileAttribution,
     maxZoom: MAP_CONFIG.maxZoom
-  }).addTo(adminMap);
+  });
+
+  const osmFallback = L.tileLayer(MAP_CONFIG.fallbackTileUrl, {
+    attribution: MAP_CONFIG.fallbackAttribution,
+    maxZoom: MAP_CONFIG.maxZoom
+  });
+
+  transportTiles.on('tileerror', function () {
+    if (adminMap.hasLayer(transportTiles)) {
+      adminMap.removeLayer(transportTiles);
+      osmFallback.addTo(adminMap);
+    }
+  });
+
+  transportTiles.addTo(adminMap);
 
   // Initialize draw layer
   drawnItems = new L.FeatureGroup();

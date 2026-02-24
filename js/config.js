@@ -4,12 +4,16 @@ export const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
 export const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
 
 export const MAP_CONFIG = {
-  center: [39.61278, -86.37640],
+  center: [39.6128, -86.3751],
   defaultZoom: 17,
   minZoom: 14,
   maxZoom: 19,
-  tileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  tileAttribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  // OpenStreetMap Transport Map (via Thunderforest-style, no key required for OPNVKarte)
+  tileUrl: 'https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png',
+  tileAttribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Map: <a href="https://memomaps.de/">memomaps.de</a> (Transport)',
+  // Fallback standard OSM tiles
+  fallbackTileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  fallbackAttribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 };
 
 export const COLORS = {
