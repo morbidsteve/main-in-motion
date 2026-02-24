@@ -13,10 +13,26 @@ export function initMap() {
     attributionControl: true
   });
 
-  L.tileLayer(MAP_CONFIG.tileUrl, {
+  // Transport map tiles with fallback to standard OSM
+  const transportTiles = L.tileLayer(MAP_CONFIG.tileUrl, {
     attribution: MAP_CONFIG.tileAttribution,
     maxZoom: MAP_CONFIG.maxZoom
-  }).addTo(map);
+  });
+
+  const osmFallback = L.tileLayer(MAP_CONFIG.fallbackTileUrl, {
+    attribution: MAP_CONFIG.fallbackAttribution,
+    maxZoom: MAP_CONFIG.maxZoom
+  });
+
+  // Try transport tiles, fall back to OSM if they fail to load
+  transportTiles.on('tileerror', function () {
+    if (map.hasLayer(transportTiles)) {
+      map.removeLayer(transportTiles);
+      osmFallback.addTo(map);
+    }
+  });
+
+  transportTiles.addTo(map);
 
   // Adjust map for desktop sidebar
   if (window.innerWidth >= 1024) {
